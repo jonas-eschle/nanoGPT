@@ -1,7 +1,0 @@
-[flake8]
-max-line-length = 100
-extend-ignore = E203
-exclude = .git,__pycache__,build,dist
-ignore = D100,D101,D102,D103,D104,D105,D106,D107,D200,D205,D400,D401,D403,D405,W503,E501,E402,E741,F821,F401,E731
-# Temporarily ignoring docstring errors (D...) and some other errors to ease initial adoption
-# These should be gradually re-enabled as code is improved

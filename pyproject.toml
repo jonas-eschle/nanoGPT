@@ -20,6 +20,8 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
@@ -36,9 +38,7 @@ dependencies = [
 dev = [
     "pytest",
     "pytest-cov",
-    "black",
-    "isort",
-    "flake8",
+    "ruff",
     "pre-commit",
 ]
 
@@ -58,13 +58,28 @@ package-dir = {"" = "."}
 where = ["."]
 include = ["nanogpt*"]
 
-[tool.black]
+[tool.ruff]
 line-length = 100
-target-version = ["py38", "py39", "py310"]
+target-version = "py38"
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".git",
+    ".ruff_cache",
+    "__pypackages__",
+    "_build",
+    "build",
+    "dist",
+]
 
-[tool.isort]
-profile = "black"
-line_length = 100
+[tool.ruff.lint]
+# Enable Pyflakes `E` and `F` codes by default.
+select = ["E", "F", "I"]
+ignore = ["E501", "E402", "E741", "F821", "F401", "E731"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

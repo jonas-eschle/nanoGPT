@@ -147,8 +147,9 @@ class Trainer:
         )
         if self.device_type == "cuda":
             # pin arrays x,y, which allows us to move them to GPU asynchronously (non_blocking=True)
-            x, y = x.pin_memory().to(self.device, non_blocking=True), y.pin_memory().to(
-                self.device, non_blocking=True
+            x, y = (
+                x.pin_memory().to(self.device, non_blocking=True),
+                y.pin_memory().to(self.device, non_blocking=True),
             )
         else:
             x, y = x.to(self.device), y.to(self.device)

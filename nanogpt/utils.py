@@ -85,8 +85,9 @@ def get_batch_iterator(data_path, batch_size, block_size, device):
         )
         if device_type == "cuda":
             # pin arrays x,y, which allows us to move them to GPU asynchronously (non_blocking=True)
-            x, y = x.pin_memory().to(device, non_blocking=True), y.pin_memory().to(
-                device, non_blocking=True
+            x, y = (
+                x.pin_memory().to(device, non_blocking=True),
+                y.pin_memory().to(device, non_blocking=True),
             )
         else:
             x, y = x.to(device), y.to(device)

@@ -129,8 +129,7 @@ pre-commit install
 ```
 
 The pre-commit hooks will run automatically on each commit to check:
-- Code formatting with Black and isort
-- Code quality with Flake8
+- Code formatting and linting with Ruff
 - Common issues like trailing whitespace and large files
 
 You can also run the checks manually on all files:

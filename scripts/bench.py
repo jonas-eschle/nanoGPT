@@ -70,8 +70,9 @@ def main():
                     for i in ix
                 ]
             )
-            x, y = x.pin_memory().to(config.device, non_blocking=True), y.pin_memory().to(
-                config.device, non_blocking=True
+            x, y = (
+                x.pin_memory().to(config.device, non_blocking=True),
+                y.pin_memory().to(config.device, non_blocking=True),
             )
             return x, y
 
