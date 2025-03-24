@@ -116,6 +116,29 @@ python -m pytest tests/nanogpt/test_model.py
 python -m pytest --cov=nanogpt
 ```
 
+### Using Pre-commit Hooks
+
+This project uses pre-commit hooks to ensure code quality and consistency. To set up pre-commit hooks:
+
+```bash
+# Install pre-commit and development dependencies
+pip install -e ".[dev]"
+
+# Install the git hooks
+pre-commit install
+```
+
+The pre-commit hooks will run automatically on each commit to check:
+- Code formatting with Black and isort
+- Code quality with Flake8
+- Common issues like trailing whitespace and large files
+
+You can also run the checks manually on all files:
+
+```bash
+pre-commit run --all-files
+```
+
 ## Original Quick Start
 
 If you are not a deep learning professional and you just want to feel the magic and get your feet wet, the fastest way to get started is to train a character-level GPT on the works of Shakespeare. First, we download it as a single (1MB) file and turn it from raw text into one large stream of integers:
