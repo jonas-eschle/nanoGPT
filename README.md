@@ -3,15 +3,50 @@
 
 ![nanoGPT](assets/nanogpt.jpg)
 
-The simplest, fastest repository for training/finetuning medium-sized GPTs. It is a rewrite of [minGPT](https://github.com/karpathy/minGPT) that prioritizes teeth over education. Still under active development, but currently the file `train.py` reproduces GPT-2 (124M) on OpenWebText, running on a single 8XA100 40GB node in about 4 days of training. The code itself is plain and readable: `train.py` is a ~300-line boilerplate training loop and `model.py` a ~300-line GPT model definition, which can optionally load the GPT-2 weights from OpenAI. That's it.
+The simplest, fastest repository for training/finetuning medium-sized GPTs. It is a rewrite of [minGPT](https://github.com/karpathy/minGPT) that prioritizes teeth over education. Still under active development, but currently nanoGPT reproduces GPT-2 (124M) on OpenWebText, running on a single 8XA100 40GB node in about 4 days of training. The code itself is plain and readable: a clean implementation of the GPT architecture with training and sampling scripts.
 
 ![repro124m](assets/gpt2_124M_loss.png)
 
 Because the code is so simple, it is very easy to hack to your needs, train new models from scratch, or finetune pretrained checkpoints (e.g. biggest one currently available as a starting point would be the GPT-2 1.3B model from OpenAI).
 
-## install
+## Repository Structure
 
 ```
+nanoGPT/
+├── nanogpt/               # Source code package
+│   ├── __init__.py
+│   ├── model.py           # Core model implementation
+│   ├── trainer.py         # Training functionality
+│   ├── sampler.py         # Generation/sampling functionality
+│   ├── config.py          # Configuration handling
+│   ├── utils.py           # Utility functions
+│   └── version.py         # Version information
+├── scripts/               # Executable scripts
+│   ├── train.py
+│   ├── sample.py
+│   └── bench.py
+├── tests/                 # Unit tests
+│   ├── __init__.py
+│   └── nanogpt/
+│       ├── __init__.py
+│       ├── test_model.py
+│       ├── test_config.py
+│       └── test_utils.py
+├── config/                # Config files
+├── data/                  # Data preparation
+├── assets/                # Repository assets
+├── pyproject.toml         # Package installation
+├── README.md              # Documentation
+└── LICENSE                # License file
+```
+
+## Install
+
+```bash
+# Install from source
+pip install -e .
+
+# Or install dependencies directly
 pip install torch numpy transformers datasets tiktoken wandb tqdm
 ```
 
@@ -25,7 +60,63 @@ Dependencies:
 -  `wandb` for optional logging <3
 -  `tqdm` for progress bars <3
 
-## quick start
+## Usage
+
+### Training
+
+```bash
+# Train a new model from scratch
+python -m scripts.train
+
+# Or use the installed script
+nanogpt-train
+
+# Train with custom configuration
+python -m scripts.train config/train_gpt2.py --batch_size=32 --compile=False
+
+# Distributed training
+torchrun --standalone --nproc_per_node=4 -m scripts.train
+```
+
+### Text Generation
+
+```bash
+# Generate text from a trained model
+python -m scripts.sample
+
+# Or use the installed script
+nanogpt-sample
+
+# Generate with custom parameters
+python -m scripts.sample --num_samples=5 --max_new_tokens=200 --temperature=0.9
+```
+
+### Benchmarking
+
+```bash
+# Benchmark model performance
+python -m scripts.bench
+
+# Or use the installed script
+nanogpt-bench
+```
+
+## Development
+
+### Running Tests
+
+```bash
+# Run all tests
+python -m pytest
+
+# Run specific test file
+python -m pytest tests/nanogpt/test_model.py
+
+# Run with coverage report
+python -m pytest --cov=nanogpt
+```
+
+## Original Quick Start
 
 If you are not a deep learning professional and you just want to feel the magic and get your feet wet, the fastest way to get started is to train a character-level GPT on the works of Shakespeare. First, we download it as a single (1MB) file and turn it from raw text into one large stream of integers:
 
@@ -38,13 +129,13 @@ This creates a `train.bin` and `val.bin` in that data directory. Now it is time 
 **I have a GPU**. Great, we can quickly train a baby GPT with the settings provided in the [config/train_shakespeare_char.py](config/train_shakespeare_char.py) config file:
 
 ```sh
-python train.py config/train_shakespeare_char.py
+python -m scripts.train config/train_shakespeare_char.py
 ```
 
 If you peek inside it, you'll see that we're training a GPT with a context size of up to 256 characters, 384 feature channels, and it is a 6-layer Transformer with 6 heads in each layer. On one A100 GPU this training run takes about 3 minutes and the best validation loss is 1.4697. Based on the configuration, the model checkpoints are being written into the `--out_dir` directory `out-shakespeare-char`. So once the training finishes we can sample from the best model by pointing the sampling script at this directory:
 
 ```sh
-python sample.py --out_dir=out-shakespeare-char
+python -m scripts.sample --out_dir=out-shakespeare-char
 ```
 
 This generates a few samples, for example:
@@ -75,13 +166,13 @@ lol  `¯\_(ツ)_/¯`. Not bad for a character-level model after 3 minutes of tra
 **I only have a macbook** (or other cheap computer). No worries, we can still train a GPT but we want to dial things down a notch. I recommend getting the bleeding edge PyTorch nightly ([select it here](https://pytorch.org/get-started/locally/) when installing) as it is currently quite likely to make your code more efficient. But even without it, a simple train run could look as follows:
 
 ```sh
-python train.py config/train_shakespeare_char.py --device=cpu --compile=False --eval_iters=20 --log_interval=1 --block_size=64 --batch_size=12 --n_layer=4 --n_head=4 --n_embd=128 --max_iters=2000 --lr_decay_iters=2000 --dropout=0.0
+python -m scripts.train config/train_shakespeare_char.py --device=cpu --compile=False --eval_iters=20 --log_interval=1 --block_size=64 --batch_size=12 --n_layer=4 --n_head=4 --n_embd=128 --max_iters=2000 --lr_decay_iters=2000 --dropout=0.0
 ```
 
 Here, since we are running on CPU instead of GPU we must set both `--device=cpu` and also turn off PyTorch 2.0 compile with `--compile=False`. Then when we evaluate we get a bit more noisy but faster estimate (`--eval_iters=20`, down from 200), our context size is only 64 characters instead of 256, and the batch size only 12 examples per iteration, not 64. We'll also use a much smaller Transformer (4 layers, 4 heads, 128 embedding size), and decrease the number of iterations to 2000 (and correspondingly usually decay the learning rate to around max_iters with `--lr_decay_iters`). Because our network is so small we also ease down on regularization (`--dropout=0.0`). This still runs in about ~3 minutes, but gets us a loss of only 1.88 and therefore also worse samples, but it's still good fun:
 
 ```sh
-python sample.py --out_dir=out-shakespeare-char --device=cpu
+python -m scripts.sample --out_dir=out-shakespeare-char --device=cpu
 ```
 Generates samples like this:
 
@@ -108,7 +199,7 @@ python data/openwebtext/prepare.py
 This downloads and tokenizes the [OpenWebText](https://huggingface.co/datasets/openwebtext) dataset. It will create a `train.bin` and `val.bin` which holds the GPT2 BPE token ids in one sequence, stored as raw uint16 bytes. Then we're ready to kick off training. To reproduce GPT-2 (124M) you'll want at least an 8X A100 40GB node and run:
 
 ```sh
-torchrun --standalone --nproc_per_node=8 train.py config/train_gpt2.py
+torchrun --standalone --nproc_per_node=8 -m scripts.train config/train_gpt2.py
 ```
 
 This will run for about 4 days using PyTorch Distributed Data Parallel (DDP) and go down to loss of ~2.85. Now, a GPT-2 model just evaluated on OWT gets a val loss of about 3.11, but if you finetune it it will come down to ~2.85 territory (due to an apparent domain gap), making the two models ~match.
@@ -117,24 +208,24 @@ If you're in a cluster environment and you are blessed with multiple GPU nodes y
 
 ```sh
 # Run on the first (master) node with example IP 123.456.123.456:
-torchrun --nproc_per_node=8 --nnodes=2 --node_rank=0 --master_addr=123.456.123.456 --master_port=1234 train.py
+torchrun --nproc_per_node=8 --nnodes=2 --node_rank=0 --master_addr=123.456.123.456 --master_port=1234 -m scripts.train
 # Run on the worker node:
-torchrun --nproc_per_node=8 --nnodes=2 --node_rank=1 --master_addr=123.456.123.456 --master_port=1234 train.py
+torchrun --nproc_per_node=8 --nnodes=2 --node_rank=1 --master_addr=123.456.123.456 --master_port=1234 -m scripts.train
 ```
 
-It is a good idea to benchmark your interconnect (e.g. iperf3). In particular, if you don't have Infiniband then also prepend `NCCL_IB_DISABLE=1` to the above launches. Your multinode training will work, but most likely _crawl_. By default checkpoints are periodically written to the `--out_dir`. We can sample from the model by simply `python sample.py`.
+It is a good idea to benchmark your interconnect (e.g. iperf3). In particular, if you don't have Infiniband then also prepend `NCCL_IB_DISABLE=1` to the above launches. Your multinode training will work, but most likely _crawl_. By default checkpoints are periodically written to the `--out_dir`. We can sample from the model by simply `python -m scripts.sample`.
 
-Finally, to train on a single GPU simply run the `python train.py` script. Have a look at all of its args, the script tries to be very readable, hackable and transparent. You'll most likely want to tune a number of those variables depending on your needs.
+Finally, to train on a single GPU simply run the `python -m scripts.train` script. Have a look at all of its args, the script tries to be very readable, hackable and transparent. You'll most likely want to tune a number of those variables depending on your needs.
 
 ## baselines
 
 OpenAI GPT-2 checkpoints allow us to get some baselines in place for openwebtext. We can get the numbers as follows:
 
 ```sh
-$ python train.py config/eval_gpt2.py
-$ python train.py config/eval_gpt2_medium.py
-$ python train.py config/eval_gpt2_large.py
-$ python train.py config/eval_gpt2_xl.py
+$ python -m scripts.train config/eval_gpt2.py
+$ python -m scripts.train config/eval_gpt2_medium.py
+$ python -m scripts.train config/eval_gpt2_large.py
+$ python -m scripts.train config/eval_gpt2_xl.py
 ```
 
 and observe the following losses on train and val:
@@ -153,10 +244,10 @@ However, we have to note that GPT-2 was trained on (closed, never released) WebT
 Finetuning is no different than training, we just make sure to initialize from a pretrained model and train with a smaller learning rate. For an example of how to finetune a GPT on new text go to `data/shakespeare` and run `prepare.py` to download the tiny shakespeare dataset and render it into a `train.bin` and `val.bin`, using the OpenAI BPE tokenizer from GPT-2. Unlike OpenWebText this will run in seconds. Finetuning can take very little time, e.g. on a single GPU just a few minutes. Run an example finetuning like:
 
 ```sh
-python train.py config/finetune_shakespeare.py
+python -m scripts.train config/finetune_shakespeare.py
 ```
 
-This will load the config parameter overrides in `config/finetune_shakespeare.py` (I didn't tune them much though). Basically, we initialize from a GPT2 checkpoint with `init_from` and train as normal, except shorter and with a small learning rate. If you're running out of memory try decreasing the model size (they are `{'gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl'}`) or possibly decreasing the `block_size` (context length). The best checkpoint (lowest validation loss) will be in the `out_dir` directory, e.g. in `out-shakespeare` by default, per the config file. You can then run the code in `sample.py --out_dir=out-shakespeare`:
+This will load the config parameter overrides in `config/finetune_shakespeare.py` (I didn't tune them much though). Basically, we initialize from a GPT2 checkpoint with `init_from` and train as normal, except shorter and with a small learning rate. If you're running out of memory try decreasing the model size (they are `{'gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl'}`) or possibly decreasing the `block_size` (context length). The best checkpoint (lowest validation loss) will be in the `out_dir` directory, e.g. in `out-shakespeare` by default, per the config file. You can then run the code in `python -m scripts.sample --out_dir=out-shakespeare`:
 
 ```
 THEODORE:
@@ -184,20 +275,20 @@ Whoa there, GPT, entering some dark place over there. I didn't really tune the h
 
 ## sampling / inference
 
-Use the script `sample.py` to sample either from pre-trained GPT-2 models released by OpenAI, or from a model you trained yourself. For example, here is a way to sample from the largest available `gpt2-xl` model:
+Use the script `scripts/sample.py` to sample either from pre-trained GPT-2 models released by OpenAI, or from a model you trained yourself. For example, here is a way to sample from the largest available `gpt2-xl` model:
 
 ```sh
-python sample.py \
+python -m scripts.sample \
     --init_from=gpt2-xl \
     --start="What is the answer to life, the universe, and everything?" \
     --num_samples=5 --max_new_tokens=100
 ```
 
-If you'd like to sample from a model you trained, use the `--out_dir` to point the code appropriately. You can also prompt the model with some text from a file, e.g. ```python sample.py --start=FILE:prompt.txt```.
+If you'd like to sample from a model you trained, use the `--out_dir` to point the code appropriately. You can also prompt the model with some text from a file, e.g. ```python -m scripts.sample --start=FILE:prompt.txt```.
 
 ## efficiency notes
 
-For simple model benchmarking and profiling, `bench.py` might be useful. It's identical to what happens in the meat of the training loop of `train.py`, but omits much of the other complexities.
+For simple model benchmarking and profiling, `scripts/bench.py` might be useful. It's identical to what happens in the meat of the training loop of `scripts/train.py`, but omits much of the other complexities.
 
 Note that the code by default uses [PyTorch 2.0](https://pytorch.org/get-started/pytorch-2.0/). At the time of writing (Dec 29, 2022) this makes `torch.compile()` available in the nightly release. The improvement from the one line of code is noticeable, e.g. cutting down iteration time from ~250ms / iter to 135ms / iter. Nice work PyTorch team!
 
