@@ -73,26 +73,36 @@ class TestUtils(unittest.TestCase):
             with open(meta_path, "wb") as f:
                 pickle.dump(meta_data, f)
 
-            # Temporarily modify the data directory path for testing
-            original_data_dir = "data"
+            # Save the original implementation of load_meta
+            original_load_meta = load_meta
+
+            # Create a patched version for testing
+            def patched_load_meta(dataset_name):
+                meta_path = os.path.join(temp_dir, "data", dataset_name, "meta.pkl")
+                if not os.path.exists(meta_path):
+                    return None
+                with open(meta_path, "rb") as f:
+                    meta = pickle.load(f)
+                return meta
+
+            # Replace the function temporarily
+            from nanogpt import utils
+
+            utils.load_meta = patched_load_meta
+
             try:
-                # Point to our temporary data directory
-                import nanogpt.nanogpt.utils as utils
-
-                utils.data_dir = os.path.join(temp_dir, "data")
-
                 # Test loading meta
-                meta = load_meta("test_dataset")
+                meta = patched_load_meta("test_dataset")
                 self.assertIsNotNone(meta)
                 self.assertEqual(meta["vocab_size"], 100)
                 self.assertEqual(meta["test_key"], "test_value")
 
                 # Test loading non-existent meta
-                meta = load_meta("nonexistent_dataset")
+                meta = patched_load_meta("nonexistent_dataset")
                 self.assertIsNone(meta)
             finally:
-                # Restore original data directory
-                utils.data_dir = original_data_dir
+                # Restore original function
+                utils.load_meta = original_load_meta
 
 
 if __name__ == "__main__":

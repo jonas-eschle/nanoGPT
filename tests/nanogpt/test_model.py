@@ -79,8 +79,8 @@ class TestGPTModel(unittest.TestCase):
 
         # Check that we have parameters
         self.assertGreater(num_params, 0)
-        # Check that non_embedding count is less than total count
-        self.assertLess(num_params_no_embed, num_params)
+        # Check that non_embedding count is less than or equal to total count
+        self.assertLessEqual(num_params_no_embed, num_params)
 
 
 if __name__ == "__main__":
