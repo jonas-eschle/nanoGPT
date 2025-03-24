@@ -19,32 +19,33 @@ $ torchrun --nproc_per_node=8 --nnodes=2 --node_rank=1 --master_addr=123.456.123
 (If your cluster does not have Infiniband interconnect prepend NCCL_IB_DISABLE=1)
 """
 
-import sys
 import os
+import sys
 
 # Add the parent directory to the path so we can import nanogpt
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from nanogpt.trainer import Trainer
 from nanogpt.config import Config
+from nanogpt.trainer import Trainer
+
 
 def main():
     # Create default configuration
     config = Config(
         # I/O
-        out_dir='out',
+        out_dir="out",
         eval_interval=2000,
         log_interval=1,
         eval_iters=200,
         eval_only=False,
         always_save_checkpoint=True,
-        init_from='scratch',
+        init_from="scratch",
         # wandb logging
         wandb_log=False,
-        wandb_project='owt',
-        wandb_run_name='gpt2',
+        wandb_project="owt",
+        wandb_run_name="gpt2",
         # data
-        dataset='openwebtext',
+        dataset="openwebtext",
         gradient_accumulation_steps=5 * 8,
         batch_size=12,
         block_size=1024,
@@ -67,20 +68,24 @@ def main():
         lr_decay_iters=600000,
         min_lr=6e-5,
         # DDP settings
-        backend='nccl',
+        backend="nccl",
         # system
-        device='cuda',
-        dtype='bfloat16' if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else 'float16',
+        device="cuda",
+        dtype="bfloat16"
+        if torch.cuda.is_available() and torch.cuda.is_bf16_supported()
+        else "float16",
         compile=True,
     )
-    
+
     # Override with command line arguments or config file
     config = Config.from_command_line(config)
-    
+
     # Create trainer and train
     trainer = Trainer(config.to_dict())
     trainer.train()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import torch
+
     main()
