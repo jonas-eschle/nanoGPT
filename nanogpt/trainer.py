@@ -343,7 +343,7 @@ class Trainer:
                         checkpoint = {
                             "model": raw_model.state_dict(),
                             "optimizer": self.optimizer.state_dict(),
-                            "model_args": model_args,
+                            # "model_args": model_args,
                             "iter_num": self.iter_num,
                             "best_val_loss": self.best_val_loss,
                             "config": self.config,

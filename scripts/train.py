@@ -65,7 +65,7 @@ def main():
         grad_clip=1.0,
         # learning rate decay
         decay_lr=True,
-        warmup_iters=2000,
+        warmup_iters=2,
         lr_decay_iters=600000,
         min_lr=6e-5,
         # DDP settings
