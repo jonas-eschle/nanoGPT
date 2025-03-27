@@ -7,6 +7,7 @@ import os
 import pickle
 import time
 from contextlib import nullcontext
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -84,8 +85,8 @@ class Trainer:
             self.ddp_rank = int(os.environ["RANK"])
             self.ddp_local_rank = int(os.environ["LOCAL_RANK"])
             self.ddp_world_size = int(os.environ["WORLD_SIZE"])
-            self.device = f"cuda:{self.ddp_local_rank}"
-            torch.cuda.set_device(self.device)
+            self.device = f"cpu:{self.ddp_local_rank}"
+            torch.set_default_device(self.device)
             self.master_process = self.ddp_rank == 0
             self.seed_offset = self.ddp_rank
             assert self.gradient_accumulation_steps % self.ddp_world_size == 0
@@ -132,7 +133,7 @@ class Trainer:
         """
         Get a batch of data from the dataset
         """
-        data_dir = os.path.join("data", self.dataset)
+        data_dir = Path(__file__).absolute().parent.parent /  "data" / self.dataset
         # We recreate np.memmap every batch to avoid a memory leak
         if split == "train":
             data = np.memmap(os.path.join(data_dir, "train.bin"), dtype=np.uint16, mode="r")
@@ -238,7 +239,7 @@ class Trainer:
         self.model.to(self.device)
 
         # initialize a GradScaler. If enabled=False scaler is a no-op
-        self.scaler = torch.cuda.amp.GradScaler(enabled=(self.dtype == "float16"))
+        self.scaler = torch.amp.GradScaler('cpu', enabled=(self.dtype == "float16"))
 
         # optimizer
         self.optimizer = self.model.configure_optimizers(

@@ -22,6 +22,9 @@ $ torchrun --nproc_per_node=8 --nnodes=2 --node_rank=1 --master_addr=123.456.123
 import os
 import sys
 
+# disable GPU for torch
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
 
 from nanogpt.config import Config
 from nanogpt.trainer import Trainer
@@ -43,7 +46,7 @@ def main():
         wandb_project="owt",
         wandb_run_name="gpt2",
         # data
-        dataset="openwebtext",
+        dataset="shakespeare",
         gradient_accumulation_steps=5 * 8,
         batch_size=12,
         block_size=1024,
