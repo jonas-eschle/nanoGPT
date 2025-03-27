@@ -9,7 +9,7 @@ import time
 from contextlib import nullcontext
 
 # Add the parent directory to the path so we can import nanogpt
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 
 import numpy as np
 import torch

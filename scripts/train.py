@@ -22,8 +22,6 @@ $ torchrun --nproc_per_node=8 --nnodes=2 --node_rank=1 --master_addr=123.456.123
 import os
 import sys
 
-# Add the parent directory to the path so we can import nanogpt
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from nanogpt.config import Config
 from nanogpt.trainer import Trainer
@@ -68,9 +66,9 @@ def main():
         lr_decay_iters=600000,
         min_lr=6e-5,
         # DDP settings
-        backend="nccl",
+        backend="gloo",
         # system
-        device="cuda",
+        device="cpu",
         dtype="bfloat16"
         if torch.cuda.is_available() and torch.cuda.is_bf16_supported()
         else "float16",
