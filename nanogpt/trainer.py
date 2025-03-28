@@ -27,9 +27,9 @@ class Trainer:
         self.config = {} if config is None else config
         # Default config values
         self.out_dir = self.config.get("out_dir", "out")
-        self.eval_interval = self.config.get("eval_interval", 2000)
+        self.eval_interval = self.config.get("eval_interval", 15)
         self.log_interval = self.config.get("log_interval", 1)
-        self.eval_iters = self.config.get("eval_iters", 200)
+        self.eval_iters = self.config.get("eval_iters", 2)
         self.eval_only = self.config.get("eval_only", False)
         self.always_save_checkpoint = self.config.get("always_save_checkpoint", True)
         self.init_from = self.config.get("init_from", "scratch")
