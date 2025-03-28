@@ -26,7 +26,7 @@ def main():
         bias=False,
         real_data=True,
         seed=1337,
-        device="cuda",
+        device="cpu",
         dtype="bfloat16"
         if torch.cuda.is_available() and torch.cuda.is_bf16_supported()
         else "float16",

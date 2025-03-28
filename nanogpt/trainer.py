@@ -11,6 +11,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import tqdm
 from torch.distributed import destroy_process_group, init_process_group
 from torch.nn.parallel import DistributedDataParallel as DDP
 
@@ -254,6 +255,8 @@ class Trainer:
                 print("compiling the model... (takes a ~minute)")
             self.unoptimized_model = self.model
             self.model = torch.compile(self.model)  # requires PyTorch 2.0
+            if self.master_process:
+                print("model compiled")
 
         # wrap model into DDP container
         if self.ddp:
@@ -315,7 +318,7 @@ class Trainer:
         raw_model = self.model.module if self.ddp else self.model  # unwrap DDP container if needed
         running_mfu = -1.0
 
-        while True:
+        for _ in tqdm.tqdm(range(self.max_iters), desc="Training", disable=not self.master_process):
             # determine and set the learning rate for this iteration
             lr = self.get_lr(self.iter_num) if self.decay_lr else self.learning_rate
             for param_group in self.optimizer.param_groups:

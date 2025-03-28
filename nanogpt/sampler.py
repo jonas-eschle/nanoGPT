@@ -28,7 +28,7 @@ class Sampler:
         self.temperature = self.config.get("temperature", 0.8)
         self.top_k = self.config.get("top_k", 200)
         self.seed = self.config.get("seed", 1337)
-        self.device = self.config.get("device", "cuda")
+        self.device = self.config.get("device", "cpu")
         self.dtype = self.config.get(
             "dtype",
             "bfloat16"
@@ -39,7 +39,7 @@ class Sampler:
 
         # setup
         torch.manual_seed(self.seed)
-        torch.cuda.manual_seed(self.seed)
+        # torch.cuda.manual_seed(self.seed)
         torch.backends.cuda.matmul.allow_tf32 = True
         torch.backends.cudnn.allow_tf32 = True
         self.device_type = "cuda" if "cuda" in self.device else "cpu"
