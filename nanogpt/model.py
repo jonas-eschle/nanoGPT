@@ -45,7 +45,6 @@ class CausalSelfAttention(nn.Module):
         # flash attention make GPU go brrrrr but support is only in PyTorch >= 2.0
         self.flash = True
 
-
     def forward(self, x):
         B, T, C = x.size()  # batch size, sequence length, embedding dimensionality (n_embd)
 
@@ -185,9 +184,9 @@ class GPT(nn.Module):
     def forward(self, idx, targets=None):
         device = idx.device
         b, t = idx.size()
-        assert (
-            t <= self.config.block_size
-        ), f"Cannot forward sequence of length {t}, block size is only {self.config.block_size}"
+        assert t <= self.config.block_size, (
+            f"Cannot forward sequence of length {t}, block size is only {self.config.block_size}"
+        )
         pos = torch.arange(0, t, dtype=torch.long, device=device)  # shape (t)
 
         # forward the GPT model itself
@@ -276,9 +275,9 @@ class GPT(nn.Module):
         ]
         # basically the openai checkpoints use a "Conv1D" module, but we only want to use a vanilla Linear
         # this means that we have to transpose these weights when we import them
-        assert len(sd_keys_hf) == len(
-            sd_keys
-        ), f"mismatched keys: {len(sd_keys_hf)} != {len(sd_keys)}"
+        assert len(sd_keys_hf) == len(sd_keys), (
+            f"mismatched keys: {len(sd_keys_hf)} != {len(sd_keys)}"
+        )
         for k in sd_keys_hf:
             if any(k.endswith(w) for w in transposed):
                 # special treatment for the Conv1D weights we need to transpose
