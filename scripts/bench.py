@@ -9,8 +9,6 @@ import time
 from contextlib import nullcontext
 
 # Add the parent directory to the path so we can import nanogpt
-
-
 import numpy as np
 import torch
 
@@ -147,7 +145,7 @@ def main():
             dt = t1 - t0
             mfu = model.estimate_mfu(config.batch_size * 1 * num_steps, dt)
             if stage == 1:
-                print(f"time per iteration: {dt/num_steps*1000:.4f}ms, MFU: {mfu*100:.2f}%")
+                print(f"time per iteration: {dt / num_steps * 1000:.4f}ms, MFU: {mfu * 100:.2f}%")
 
 
 if __name__ == "__main__":

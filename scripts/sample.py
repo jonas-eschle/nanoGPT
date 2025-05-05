@@ -6,7 +6,6 @@ Script for sampling from a trained GPT model
 import os
 import sys
 
-
 from nanogpt.config import Config
 from nanogpt.sampler import Sampler
 
