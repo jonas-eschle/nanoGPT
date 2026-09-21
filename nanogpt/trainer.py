@@ -134,7 +134,7 @@ class Trainer:
         """
         Get a batch of data from the dataset
         """
-        data_dir = Path(__file__).absolute().parent.parent /  "data" / self.dataset
+        data_dir = Path(__file__).absolute().parent.parent / "data" / self.dataset
         # We recreate np.memmap every batch to avoid a memory leak
         if split == "train":
             data = np.memmap(os.path.join(data_dir, "train.bin"), dtype=np.uint16, mode="r")
@@ -233,14 +233,14 @@ class Trainer:
         # crop down the model block size if desired, using model surgery
         if self.block_size < self.model.config.block_size:
             self.model.crop_block_size(self.block_size)
-            model_args[
-                "block_size"
-            ] = self.block_size  # so that the checkpoint will have the right value
+            model_args["block_size"] = (
+                self.block_size
+            )  # so that the checkpoint will have the right value
 
         self.model.to(self.device)
 
         # initialize a GradScaler. If enabled=False scaler is a no-op
-        self.scaler = torch.amp.GradScaler('cpu', enabled=(self.dtype == "float16"))
+        self.scaler = torch.amp.GradScaler("cpu", enabled=(self.dtype == "float16"))
 
         # optimizer
         self.optimizer = self.model.configure_optimizers(
@@ -400,7 +400,7 @@ class Trainer:
                     )
                     running_mfu = mfu if running_mfu == -1.0 else 0.9 * running_mfu + 0.1 * mfu
                 print(
-                    f"iter {self.iter_num}: loss {lossf:.4f}, time {dt*1000:.2f}ms, mfu {running_mfu*100:.2f}%"
+                    f"iter {self.iter_num}: loss {lossf:.4f}, time {dt * 1000:.2f}ms, mfu {running_mfu * 100:.2f}%"
                 )
             self.iter_num += 1
             local_iter_num += 1
